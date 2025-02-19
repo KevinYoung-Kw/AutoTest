@@ -1,131 +1,194 @@
-# Playwright自动化测试工具
+# Playwright自动化测试工具实现文档
 
-## 项目概述
-基于Playwright框架构建的自动化测试解决方案，提供可视化操作界面和标准化API接口。支持在Windows Server 2012 R2环境下进行测试用例的录制、执行和管理，满足金融级测试用例编号规范要求。
+## 1. 项目结构
 
-## 功能特性
-- 🎥 可视化操作录制（双屏模式）
-- ⚡ 测试步骤/项目批量执行
-- 📁 测试项目管理（CRUD）
-- 📊 结构化测试结果输出
-- 🔌 标准化API接口（FastAPI）
-- 🕰️ 历史操作回放与调试
-
-## 环境要求
-| 组件                | 版本要求                     |
-|---------------------|----------------------------|
-| 操作系统             | MacOS    |
-| Python              | 3.10 或更高版本            |
-| Node.js             | 16.x 或更高版本            |
-| Playwright          | 最新版本                    |
-| Chromium浏览器       | 最新稳定版本                |
-
-## 安装步骤
-
-### 1. 克隆仓库
-```bash
-git clone https://github.com/your-repo/playwright-test-tool.git
-cd playwright-test-tool
+```
+playwright-test-tool/
+├── api/                # API接口层
+│   ├── routers/       # FastAPI路由
+│   │   ├── project.py # 项目管理路由
+│   │   └── testcase.py# 测试用例路由
+│   └── schemas.py     # 数据模型
+├── core/              # 核心功能模块
+│   ├── recorder.py    # 操作录制控制
+│   ├── executor.py    # 测试执行引擎
+│   └── project_manager.py # 项目管理
+├── static/            # 静态资源
+│   ├── css/          # 样式文件
+│   │   └── style.css # 主样式表
+│   └── js/           # JavaScript文件
+│       └── main.js   # 主逻辑脚本
+├── templates/         # 模板文件
+│   └── index.html    # 主页面模板
+├── utils/            # 工具模块
+│   └── logger.py     # 日志管理
+├── main.py           # 应用入口
+├── init.py           # 初始化脚本
+└── requirements.txt   # 项目依赖
 ```
 
-### 2. 安装Python依赖
-```bash
-# 使用32位Python解释器
-pip install -r requirements.txt
+## 2. 依赖管理
+
+```python
+# requirements.txt
+playwright>=1.40.0
+fastapi>=0.104.1
+uvicorn>=0.24.0
+python-multipart>=0.0.6
+pydantic>=2.5.2
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
+python-dotenv>=1.0.0
+loguru>=0.7.2
+aiofiles>=23.2.1
+jinja2>=3.1.2
 ```
 
-### 3. 配置Node.js环境
-```bash
-nvm install 14.21.3
-nvm use 14.21.3
+## 3. 前端实现
+
+### 3.1 主页面模板 (templates/index.html)
+
+主页面使用Bootstrap 5构建，包含以下主要部分：
+- 导航栏
+- 项目列表
+- 测试用例列表
+- 执行结果显示
+- 新建项目模态框
+- 录制URL模态框
+
+### 3.2 样式表 (static/css/style.css)
+
+定义了自定义样式，包括：
+- 卡片阴影效果
+- 列表项交互效果
+- 执行结果样式
+- 截图显示样式
+- 录制指示器动画
+
+### 3.3 前端逻辑 (static/js/main.js)
+
+实现了所有前端交互功能：
+- 项目管理（创建、选择、列表）
+- 测试用例管理（录制、执行、删除）
+- 执行结果展示
+- API调用处理
+- 错误处理和用户提示
+
+## 4. 后端实现
+
+### 4.1 主应用 (main.py)
+
+```python
+import uvicorn
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from api.routers import project, testcase
+from loguru import logger
+import os
+
+# 配置日志
+os.makedirs("logs", exist_ok=True)
+logger.add("logs/operation.log", rotation="1 day", retention="7 days")
+logger.add("logs/execution.log", rotation="1 day", retention="7 days")
+
+app = FastAPI(
+    title="Playwright自动化测试工具",
+    description="基于Playwright框架的自动化测试解决方案",
+    version="1.0.0"
+)
+
+# 配置静态文件和模板
+app.mount("/static", StaticFiles(directory="static"), name="static")
+templates = Jinja2Templates(directory="templates")
+
+# 配置CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# 注册路由
+app.include_router(project.router, prefix="/api/v1/project", tags=["项目管理"])
+app.include_router(testcase.router, prefix="/api/v1/testcase", tags=["测试用例"])
+
+@app.get("/")
+async def root(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
 ```
 
-### 4. 安装Playwright浏览器
+### 4.2 初始化脚本 (init.py)
+
+提供项目初始化功能：
+- 创建必要的目录
+- 安装项目依赖
+- 配置环境
+
+## 5. 功能说明
+
+### 5.1 项目管理
+- 创建新项目：支持设置项目ID、名称和描述
+- 项目列表：显示所有项目及其基本信息
+- 项目选择：切换当前操作的项目
+
+### 5.2 测试用例管理
+- 录制功能：
+  - 支持输入目标URL
+  - 实时录制用户操作
+  - 自动保存录制步骤
+- 执行功能：
+  - 支持单个测试用例执行
+  - 支持批量执行
+  - 实时显示执行结果
+- 删除功能：支持删除不需要的测试用例
+
+### 5.3 执行结果
+- 显示测试用例执行状态
+- 显示每个步骤的详细信息
+- 支持截图查看
+- 显示错误信息（如果有）
+
+## 6. 使用说明
+
+1. 安装依赖：
 ```bash
-playwright install chromium@90.0.4430.212
+python init.py
 ```
 
-## 使用指南
-
-### 图形界面操作
-1. 启动应用程序：
+2. 启动应用：
 ```bash
 python main.py
 ```
 
-2. 创建新项目：
+3. 访问应用：
 ```
-项目名称格式：test project <project_name>
-测试案例编号：C-FSTD-CCVCB29-001
-测试要点编号：TKP-C-FSTD-CCVCB-001
+http://localhost:8000
 ```
 
-3. 录制操作步骤：
-   - 点击【新建操作】输入目标URL
-   - 左侧浏览器进行操作
-   - 右侧Inspector生成脚本
-   - 点击【终止录制】保存步骤
+4. 使用流程：
+   - 创建新项目
+   - 选择项目
+   - 录制测试用例
+   - 执行测试
+   - 查看结果
 
-4. 执行测试：
-   - 单个步骤执行（右键步骤→执行）
-   - 批量项目执行（项目→执行全部）
+## 7. 注意事项
 
-### API接口文档
-基础URL：`http://localhost:8000/api/v1`
+1. 环境要求：
+   - Python 3.x
+   - MacOS操作系统
+   - 现代浏览器（支持ES6+）
 
-| 端点                | 方法   | 参数示例                             |
-|---------------------|--------|------------------------------------|
-| /project/create     | POST   | { "project_id": "C-FSTD-..." }     |
-| /testcase/execute   | POST   | { "step_id": "TKP-C-FSTD-..." }    |
-| /results/{project}  | GET    |                                    |
+2. 安全考虑：
+   - 已配置CORS策略
+   - 使用安全的API调用方式
+   - 错误处理和日志记录
 
-**请求示例**：
-```bash
-curl -X POST "http://localhost:8000/api/v1/testcase/execute" \
--H "Content-Type: application/json" \
--d '{"project_id": "C-FSTD-CCVCB29-001", "step_id": "TKP-C-FSTD-CCVCB-001"}'
-```
-
-**响应结构**：
-```json
-{
-    "project_id": "C-FSTD-CCVCB29-001",
-    "status": "success",
-    "execution_time": 12.34,
-    "steps": [
-        {
-            "step_id": "TKP-C-FSTD-CCVCB-001",
-            "status": "success",
-            "screenshot": "base64_image_data",
-            "timestamp": "2023-08-20T15:32:45Z"
-        }
-    ]
-}
-```
-
-## 项目结构
-```
-playwright-test-tool/
-├── core/               # 核心功能模块
-│   ├── recorder.py     # 操作录制控制
-│   ├── executor.py     # 测试执行引擎
-│   └── project_manager.py # 项目管理
-├── api/                # API接口层
-│   ├── routers/        # FastAPI路由
-│   └── schemas.py      # 数据模型
-├── projects/           # 项目存储目录
-├── utils/              # 工具模块
-│   ├── win_utils.py    # Windows专用功能
-│   └── logger.py       # 日志管理
-└── config.ini          # 配置文件
-```
-
-## 注意事项
-1. **版本强制校验**：必须严格使用指定版本组件
-2. **内存管理**：建议分配至少4GB内存给Python进程
-3. **日志管理**：
-   - 操作日志：/logs/operation.log
-   - 执行日志：/logs/execution.log
-4. **故障恢复**：异常中断后使用`--recover`参数启动程序恢复会话
-
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+3. 维护建议：
+   - 定期检查日志文件
+   - 及时清理不需要的测试用例
+   - 保持浏览器和依赖包更新 

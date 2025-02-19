@@ -1,0 +1,67 @@
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.list-group-item {
+    cursor: pointer;
+}
+
+.list-group-item:hover {
+    background-color: #f8f9fa;
+}
+
+.list-group-item.active {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.execution-result {
+    margin-bottom: 1rem;
+    padding: 1rem;
+    border-radius: 0.25rem;
+}
+
+.execution-result.success {
+    background-color: #d4edda;
+    border: 1px solid #c3e6cb;
+}
+
+.execution-result.failure {
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+}
+
+.screenshot {
+    max-width: 100%;
+    height: auto;
+    margin-top: 1rem;
+    border: 1px solid #dee2e6;
+    border-radius: 0.25rem;
+}
+
+.step-list {
+    list-style: none;
+    padding-left: 0;
+}
+
+.step-item {
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+    border: 1px solid #dee2e6;
+    border-radius: 0.25rem;
+}
+
+.step-item:hover {
+    background-color: #f8f9fa;
+}
+
+.recording-indicator {
+    color: #dc3545;
+    animation: blink 1s infinite;
+}
+
+@keyframes blink {
+    50% {
+        opacity: 0;
+    }
+} 
