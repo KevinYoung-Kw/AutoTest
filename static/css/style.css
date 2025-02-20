@@ -64,4 +64,62 @@
     50% {
         opacity: 0;
     }
+}
+
+.btn-group {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 80px;
+}
+
+.btn .spinner-border {
+    margin-right: 0.5rem;
+}
+
+/* 项目测试按钮样式 */
+#executeButton {
+    position: relative;
+}
+
+#executeButton:disabled {
+    cursor: not-allowed;
+}
+
+/* 录制按钮样式 */
+#recordButton {
+    position: relative;
+}
+
+#recordButton:disabled {
+    cursor: not-allowed;
+}
+
+/* 执行结果样式 */
+.execution-result {
+    margin-top: 1rem;
+    padding: 1rem;
+    border-radius: 4px;
+}
+
+.execution-result .details {
+    margin-top: 1rem;
+    padding: 1rem;
+    background-color: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+}
+
+.badge {
+    padding: 0.35em 0.65em;
+    font-size: 0.75em;
+}
+
+.card {
+    margin-bottom: 1rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 } 

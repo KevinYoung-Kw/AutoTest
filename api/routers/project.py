@@ -2,6 +2,8 @@ from fastapi import APIRouter, HTTPException
 from typing import List
 from ..schemas import ProjectCreate, ProjectUpdate, ProjectInfo
 from core.project_manager import ProjectManager
+import os
+import shutil
 
 router = APIRouter()
 project_manager = ProjectManager()
@@ -38,13 +40,26 @@ async def update_project(project_id: str, project: ProjectUpdate):
         raise HTTPException(status_code=400, detail="项目更新失败")
     return success
 
-@router.delete("/delete/{project_id}", response_model=bool)
+@router.delete("/delete/{project_id}")
 async def delete_project(project_id: str):
-    """删除项目"""
-    success = project_manager.delete_project(project_id)
-    if not success:
-        raise HTTPException(status_code=400, detail="项目删除失败")
-    return success
+    """删除项目及其所有测试用例"""
+    try:
+        # 检查项目是否存在
+        project = project_manager.get_project(project_id)
+        if not project:
+            raise HTTPException(status_code=404, detail="项目不存在")
+            
+        # 删除项目目录及其所有内容
+        project_dir = f"projects/{project_id}"
+        if os.path.exists(project_dir):
+            shutil.rmtree(project_dir)
+            
+        # 从项目列表中删除项目
+        project_manager.delete_project(project_id)
+        
+        return {"status": "success", "message": "项目已删除"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/list", response_model=List[ProjectInfo])
 async def list_projects():

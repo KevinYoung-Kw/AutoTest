@@ -97,4 +97,85 @@ async def get_script(project_id: str, test_case_id: str):
             
         return PlainTextResponse(content)
     except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.delete("/delete/{project_id}/{test_case_id}")
+async def delete_testcase(project_id: str, test_case_id: str):
+    """删除测试用例"""
+    try:
+        script_path = f"projects/{project_id}/results/{test_case_id}.py"
+        if not os.path.exists(script_path):
+            raise HTTPException(status_code=404, detail="测试用例不存在")
+            
+        try:
+            os.remove(script_path)
+            return {"status": "success", "message": "测试用例已删除"}
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"删除测试用例失败: {str(e)}")
+            
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/execute_project/{project_id}")
+async def execute_project(project_id: str):
+    """执行项目中的所有测试用例"""
+    try:
+        # 获取项目信息
+        project = project_manager.get_project(project_id)
+        if not project:
+            raise HTTPException(status_code=404, detail="项目不存在")
+
+        # 获取所有测试用例
+        test_cases = await list_testcases(project_id)
+        if not test_cases:
+            return {
+                "status": "success",
+                "message": "项目中没有可执行的测试用例",
+                "total": 0,
+                "success": 0,
+                "failed": 0,
+                "results": []
+            }
+
+        results = []
+        success_count = 0
+        failed_count = 0
+
+        # 初始化测试会话
+        if not await executor.start_session():
+            raise HTTPException(status_code=500, detail="测试会话初始化失败")
+
+        try:
+            # 依次执行每个测试用例
+            for test_case in test_cases:
+                try:
+                    result = await executor.execute_test_case(project_id, test_case["test_case_id"])
+                    if result["status"] == "success":
+                        success_count += 1
+                    else:
+                        failed_count += 1
+                    results.append(result)
+                except Exception as e:
+                    failed_count += 1
+                    results.append({
+                        "status": "error",
+                        "test_case_id": test_case["test_case_id"],
+                        "message": str(e),
+                        "execution_time": datetime.now().isoformat()
+                    })
+        finally:
+            # 确保会话被关闭
+            await executor.close_session()
+
+        # 返回执行结果
+        return {
+            "status": "success",
+            "message": f"执行完成: 成功 {success_count} 个, 失败 {failed_count} 个",
+            "total": len(test_cases),
+            "success": success_count,
+            "failed": failed_count,
+            "results": results
+        }
+
+    except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) 

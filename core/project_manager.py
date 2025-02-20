@@ -74,16 +74,19 @@ class ProjectManager:
             logger.error(f"更新项目失败: {str(e)}")
             return False
             
-    def delete_project(self, project_id):
+    def delete_project(self, project_id: str) -> bool:
         """删除项目"""
         try:
-            project_path = os.path.join(self.base_path, project_id)
-            if not os.path.exists(project_path):
-                logger.error(f"项目不存在: {project_id}")
-                return False
-                
-            shutil.rmtree(project_path)
-            logger.info(f"项目删除成功: {project_id}")
+            # 读取现有项目列表
+            projects = self._load_projects()
+            
+            # 找到并删除项目
+            projects = [p for p in projects if p["project_id"] != project_id]
+            
+            # 保存更新后的项目列表
+            with open(self.projects_file, 'w', encoding='utf-8') as f:
+                json.dump(projects, f, ensure_ascii=False, indent=2)
+            
             return True
         except Exception as e:
             logger.error(f"删除项目失败: {str(e)}")
