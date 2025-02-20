@@ -1,7 +1,0 @@
----
-description: 由于系统环境约束，要对安装的库、组件进行版本上的限制
-globs: *.sh, *.py, config.ini
----
-- 组件版本必须严格匹满足Windows Server 2012 R2操作系统版本(NT 6.3)兼容
-- 安装命令必须包含`nvm use 14.21.3`和`playwright install chromium@90.0.4430.212`
-- 运行时检测系统版本

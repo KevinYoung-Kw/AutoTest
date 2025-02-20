@@ -1,0 +1,51 @@
+# 开发环境
+venv/
+.env
+.env.local
+.venv/
+.python-version
+
+# 运行时文件
+/projects/
+/logs/
+*.log
+*.tmp
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# 系统文件
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# 测试相关
+test-results/
+screenshots/
+playwright-report/
+.coverage
+htmlcov/
+
+# 编辑器配置
+.vscode/
+.idea/
+*.code-workspace
+
+# 包管理
+node_modules/
+package-lock.json
+
+# 二进制文件
+*.exe
+*.dll
+*.bin
+*.dat
+
+# 大文件
+*.mp4
+*.zip
+*.tar.gz
+
+# 本地配置
+config.ini
+local.settings.json

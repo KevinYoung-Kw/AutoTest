@@ -1,0 +1,28 @@
+# 大数据目录
+/projects/**
+/logs/**
+/screenshots/**
+/test-results/**
+
+# 二进制文件
+*.png
+*.jpg
+*.jpeg
+*.bin
+
+# 敏感文件
+**/config.ini
+**/*.env
+**/*.local
+
+# 视频记录
+*.webm
+*.mov
+
+# 内存转储
+*.hprof
+*.core
+
+# 安装包
+*.msi
+*.dmg
