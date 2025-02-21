@@ -19,6 +19,7 @@ class ProjectManager:
                 
             os.makedirs(project_path)
             os.makedirs(os.path.join(project_path, "results"))
+            os.makedirs(os.path.join(project_path, "test_cases"))
             
             project_info = {
                 "project_id": project_id,
@@ -41,11 +42,48 @@ class ProjectManager:
         """获取项目信息"""
         try:
             project_path = os.path.join(self.base_path, project_id)
+            project_info_path = os.path.join(project_path, "project_info.json")
+            
+            # 如果项目目录不存在，创建它
             if not os.path.exists(project_path):
-                logger.error(f"项目不存在: {project_id}")
-                return None
+                os.makedirs(project_path)
+                os.makedirs(os.path.join(project_path, "results"))
+                os.makedirs(os.path.join(project_path, "test_cases"))
                 
-            with open(os.path.join(project_path, "project_info.json"), "r", encoding="utf-8") as f:
+                # 创建默认的项目信息
+                project_info = {
+                    "project_id": project_id,
+                    "project_name": f"项目 {project_id}",
+                    "description": "",
+                    "created_at": datetime.now().isoformat(),
+                    "updated_at": datetime.now().isoformat()
+                }
+                
+                # 保存项目信息
+                with open(project_info_path, "w", encoding="utf-8") as f:
+                    json.dump(project_info, f, ensure_ascii=False, indent=2)
+                    
+                logger.info(f"项目目录已自动创建: {project_id}")
+                return project_info
+                
+            # 如果项目信息文件不存在，创建它
+            if not os.path.exists(project_info_path):
+                project_info = {
+                    "project_id": project_id,
+                    "project_name": f"项目 {project_id}",
+                    "description": "",
+                    "created_at": datetime.now().isoformat(),
+                    "updated_at": datetime.now().isoformat()
+                }
+                
+                with open(project_info_path, "w", encoding="utf-8") as f:
+                    json.dump(project_info, f, ensure_ascii=False, indent=2)
+                    
+                logger.info(f"项目信息文件已自动创建: {project_id}")
+                return project_info
+                
+            # 读取现有的项目信息
+            with open(project_info_path, "r", encoding="utf-8") as f:
                 return json.load(f)
         except Exception as e:
             logger.error(f"获取项目信息失败: {str(e)}")
